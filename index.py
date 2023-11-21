@@ -1,13 +1,3 @@
-# To run this script:
-# python excel-to-json.py <excel_folder> <json_folder>
-#
-# Example:
-# python index.py ./excel ./json
-#
-# This script will create a json file in the json folder for each year .
-# The json file will contain all the data from the excel file for that year.
-# The json file will also contain all the data from the excel file for the base year (2021).
-
 # Imports
 import sys
 import os
@@ -194,39 +184,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         sheet_data[data_key].update(
                             {key: excel_content.iloc[row_n, col_n]}
                         )
-
-        # elif sheet_key == 'projects':
-        #     row_preheader = ""
-        #     for row_n in range(3, 107):
-        #         if excel_content.iloc[row_n, 1]:
-        #             row_preheader = str(excel_content.iloc[row_n, 1])
-        #         row_header = (
-        #             "supply"
-        #             if "productie" in excel_content.iloc[row_n, 3]
-        #             else "demand"
-        #         )
-        #         for col_n in range(5, 44):
-        #             if excel_content.iloc[1, col_n]:
-        #                 col_preheader = excel_content.iloc[1, col_n]
-        #             col_header = excel_content.iloc[2, col_n]
-        #             key = strip_string(
-        #                 key_prefix
-        #                 + "_"
-        #                 + sheet_key
-        #                 + "_"
-        #                 + row_preheader
-        #                 + "_"
-        #                 + row_header
-        #                 + "_"
-        #                 + col_preheader
-        #                 + "_"
-        #                 + col_header
-        #                 + "_"
-        #             )
-        #             if excel_content.iloc[row_n, col_n] != "":
-        #                 sheet_data["data"].update(
-        #                     {key: excel_content.iloc[row_n, col_n]}
-        #                 )
 
         elif sheet_key == "flex":
             year = ""
