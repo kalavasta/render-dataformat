@@ -94,7 +94,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
             industry = excel_content.iloc[14, 2]
             cluster = excel_content.iloc[15, 2]
             name = excel_content.iloc[13, 2]
-            newName = excel_content.iloc[10, 2].lower() == "nieuw"
+            is_new_site = excel_content.iloc[10, 2].lower() == "nieuw"
             if industry not in cc_data["sectors"]:
                 print(
                     f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs. \n\nPlease pick an industry from one of the following:\n",
@@ -109,14 +109,14 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     "\n\n\n",
                 )
                 return True, new_count, False
-
-            if newName:
+            if is_new_site:
                 if name in cc_data["sites"]:
                     print(
-                        f"Name for excel {excel_file} ({name}) alread exists, a new site will be created.\n\n If you want to add a new site, please pick a name that does not match one of the following:\n",
+                        f"Name for excel {excel_file} ({name}) already exists, site will be ignored.\n\n If you want to add a new site, please pick a name that does not match one of the following:\n",
                         cc_data["sites"],
                         "\n\n\n",
                     )
+                    return True, new_count, False
 
                 key_prefix = f"ldsh&&##new_cc_site{new_count}##"
                 sheet_data["data"].update(
@@ -127,15 +127,20 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 )
                 new_count += 1
                 new_site = {
-                    key_prefix: {"site": name, "sector": industry, "cluster": cluster}
+                    key_prefix: {
+                        "site": name,
+                        "sector": industry,
+                        "cluster": cluster,
+                    }
                 }
             else:
                 if name not in cc_data["sites"]:
                     print(
-                        f"Name for excel {excel_file} ({name}) does not exist, a new site will be created.\n\n If you want to edit an existing site, please pick from one of the following:\n",
+                        f"Name for excel {excel_file} ({name}) does not exist, site will be ignored.\n\n If you want to edit an existing site, please pick from one of the following:\n",
                         cc_data["sites"],
                         "\n\n\n",
                     )
+                    return True, new_count, False
 
                 key_prefix = strip_string(f"ldsh&&{industry}&&{cluster}&&{name}")
 
@@ -219,7 +224,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
 def create_json_files():
     for year_key in YEARS:
-        filename = f"{json_folder}//{str(year_key)}.json"
+        filename = f"{json_folder}/{str(year_key)}.json"
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, "w") as f:
@@ -236,7 +241,7 @@ def main():
     new_count = 1
     for file in os.listdir(excel_folder):
         if file.endswith(".xlsx") and file[0] != "~":
-            excel_file = f"{excel_folder}//{file}"
+            excel_file = f"{excel_folder}/{file}"
             [error, new_count, new_site] = extract_excel_data(
                 excel_file, cc_data, new_count
             )
