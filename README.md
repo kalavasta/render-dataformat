@@ -12,6 +12,12 @@ Clone the repository to your local machine using the following command:
 git clone https://github.com/kalavasta/render-dataformat.git
 ```
 
+Install the required packages:
+
+```
+pip install -r requirements.txt
+```
+
 ## Usage
 
 Run the following script. Replace `<excel_folder>` with the folder containing the excel files and `<json_folder>` with the folder where you want to save the json files. The script will create the json folder if it does not exist.
