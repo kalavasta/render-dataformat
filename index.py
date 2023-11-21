@@ -26,7 +26,7 @@ YEARS = [
     "2050_internationale_handel",
 ]
 
-API_URL = "http://127.0.0.1:5000"
+API_URL = "http://ctm-api-beta.eba-pamspfvv.eu-central-1.elasticbeanstalk.com/"
 
 # Global variables
 excel_folder = sys.argv[1]
