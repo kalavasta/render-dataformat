@@ -44,7 +44,7 @@ cc_data = response.json()
 def strip_string(string):
     string = (
         string.strip()
-        .replace("&&", "####")
+        .replace("&&", "#replace#")
         .replace("-", "_")
         .replace(" ", "_")
         .replace("?", "")
@@ -66,7 +66,7 @@ def strip_string(string):
         .replace("__", "_")
         .rstrip("_")
         .lower()
-        .replace("####", "&&")
+        .replace("#replace#", "&&")
     )
     return string.replace("__", "_")
 
