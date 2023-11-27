@@ -34,6 +34,7 @@ json_folder = sys.argv[2]
 sheet_data = {key: {} for key in YEARS}
 sheet_data.update({"data": {}})
 new_sites = {}
+changes = []
 
 # Obtain list of sectors, clusters, and sites
 response = requests.get(f"{API_URL}/api/getClusterInfo")
@@ -100,7 +101,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
             excel_file, engine="openpyxl", sheet_name=sheet_value
         )
         excel_content = excel_content.fillna("")
-
         if sheet_key == "company_details":
             industry = excel_content.iloc[14, 2]
             cluster = excel_content.iloc[15, 2]
@@ -149,7 +149,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     return True, new_count, False
 
                 key_prefix = strip_string(f"ldsh&&{industry}&&{cluster}&&{name}")
-
             sheet_data["data"][f"{key_prefix}&&ldsh_enabled"] = 1
 
             for row_n in range(7, 20):
@@ -157,6 +156,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     f"{key_prefix}&&{sheet_key}_{excel_content.iloc[row_n, 1]}"
                 )
                 sheet_data["data"].update({key: excel_content.iloc[row_n, 2]})
+            changes.append(key_prefix.replace("ldsh&&", ""))
+
 
         elif sheet_key == "emissions_and_energy":
             year = ""
@@ -233,7 +234,7 @@ def create_json_files():
         filename = f"{json_folder}/{str(year_key)}.json"
         create_file(
             filename,
-            {**sheet_data["data"], **sheet_data[year_key], "new_sites": new_sites},
+            {**sheet_data["data"], **sheet_data[year_key], "new_sites": new_sites, "changes": changes},
         )
 
 
