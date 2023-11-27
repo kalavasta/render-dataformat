@@ -1,2 +1,6 @@
 excel/*
+!excel/.gitkeep
 json/*
+!json/.gitkeep
+logs/*
+!logs/.gitkeep

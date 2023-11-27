@@ -29,5 +29,5 @@ python index.py <excel_folder> <json_folder>
 This example script will use the excel and json folder at the root of this project.
 
 ```
-python index.py ./excel ./json
+python index.py excel json
 ```
