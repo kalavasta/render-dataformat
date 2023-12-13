@@ -32,6 +32,11 @@ This example script will use the excel and json folder at the root of this proje
 python index.py excel json
 ```
 
+## Implementation
+
+When the JSON files have been generated, they can be imported into a session or scenario. This is illustrated in the `import_example.py` file, located in the root folder of this repository.
+This works in the following manner. The first step is to create a session from the scenario that you want to use. The default is the `base` scenario, which contains the default values of a scenario. Next, the value of the created JSON file in the corresponding session, and outputs can be requested. Afterwards, the session is deleted, this step is optional.
+
 ## License
 
 See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
