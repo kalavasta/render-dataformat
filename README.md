@@ -31,3 +31,7 @@ This example script will use the excel and json folder at the root of this proje
 ```
 python index.py excel json
 ```
+
+## License
+
+See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
