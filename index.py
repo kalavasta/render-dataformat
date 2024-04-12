@@ -4,6 +4,7 @@ import os
 import pandas as pd
 import requests
 import sys
+import re
 
 # Constants
 SHEETS = {
@@ -258,7 +259,7 @@ def main():
     create_json_files()
     create_file("logs/industries.log", cc_data["sectors"])
     create_file("logs/clusters.log", cc_data["clusters"])
-    create_file("logs/sites.log", cc_data["sites"])
+    create_file("logs/sites.log", [item for item in cc_data["sites"] if not re.match(r"##new_cc_site\d+##", item)])
     create_file("logs/sbi_codes.log", cc_data["sbi_codes"])
 
 
