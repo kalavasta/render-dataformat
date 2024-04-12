@@ -26,7 +26,7 @@ YEARS = [
     "2050_internationale_handel",
 ]
 
-API_URL = "http://ctm-api-beta.eba-pamspfvv.eu-central-1.elasticbeanstalk.com/"
+API_URL = "https://beta.carbontransitionmodel.com"
 
 # Global variables
 excel_folder = sys.argv[1]
@@ -39,7 +39,6 @@ changes = []
 # Obtain list of sectors, clusters, and sites
 response = requests.get(f"{API_URL}/api/getClusterInfo")
 cc_data = response.json()
-
 
 # Functions
 def strip_string(string):
@@ -107,11 +106,18 @@ def extract_excel_data(excel_file, cc_data, new_count):
             name = excel_content.iloc[13, 2]
             is_new_site = excel_content.iloc[10, 2].lower() == "nieuw"
             if industry not in cc_data["sectors"]:
-                print(
-                    f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs.\nPlease pick an industry from logs/industries.log\n"
-                )
+                found = False
+                for key in cc_data['sbi_codes']:
+                    if str(industry) in cc_data['sbi_codes'][key]:
+                        industry = key
+                        found = True
 
-                return True, new_count, False
+                if not found:
+                    print(
+                        f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs.\nPlease pick an industry from logs/industries.log or an SBI code from logs/sbi_codes.log\n"
+                    )
+                    return True, new_count, False
+
             if cluster not in cc_data["clusters"]:
                 print(
                     f"Cluster for excel {excel_file} ({cluster}) does not exist, it will be emitted from the inputs.\nPlease pick a cluster from logs/clusters.log\n"
@@ -253,6 +259,7 @@ def main():
     create_file("logs/industries.log", cc_data["sectors"])
     create_file("logs/clusters.log", cc_data["clusters"])
     create_file("logs/sites.log", cc_data["sites"])
+    create_file("logs/sbi_codes.log", cc_data["sbi_codes"])
 
 
 if __name__ == "__main__":
