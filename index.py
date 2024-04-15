@@ -26,7 +26,7 @@ YEARS = [
     "2050_internationale_handel",
 ]
 
-API_URL = "http://ctm-api-beta.eba-pamspfvv.eu-central-1.elasticbeanstalk.com/"
+API_URL = "http://ctm-api-live.eba-pamspfvv.eu-central-1.elasticbeanstalk.com/"
 
 # Global variables
 excel_folder = sys.argv[1]
@@ -158,7 +158,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 sheet_data["data"].update({key: excel_content.iloc[row_n, 2]})
             changes.append(key_prefix.replace("ldsh&&", ""))
 
-
         elif sheet_key == "emissions_and_energy":
             year = ""
             year_suffix = ""
@@ -234,7 +233,12 @@ def create_json_files():
         filename = f"{json_folder}/{str(year_key)}.json"
         create_file(
             filename,
-            {**sheet_data["data"], **sheet_data[year_key], "new_sites": new_sites, "changes": changes},
+            {
+                **sheet_data["data"],
+                **sheet_data[year_key],
+                "new_sites": new_sites,
+                "changes": changes,
+            },
         )
 
 
