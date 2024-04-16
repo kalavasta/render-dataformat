@@ -17,6 +17,8 @@ SHEETS = {
 YEARS = [
     "2030",
     "2035",
+    "2040_eigen_toekomstbeeld_bedrijf",
+    "2050_eigen_toekomstbeeld_bedrijf",
     "2040_decentrale_initiatieven",
     "2040_nationaal_leiderschap",
     "2040_europese_integratie",
