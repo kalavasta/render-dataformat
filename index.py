@@ -129,7 +129,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                 return True, new_count, False
             if is_new_site:
-                if name in cc_data["sites"]:
+                if is_new_site and name in cc_data["sites"]:
                     print(
                         f"Name for excel {excel_file} ({name}) already exists, site will be ignored.\nIf you want to add a new site, please pick a name that does not match one from logs/sites.log\n"
                     )
@@ -154,9 +154,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
             else:
                 if name not in cc_data["sites"]:
                     print(
-                        f"Name for excel {excel_file} ({name}) does not exist, site will be ignored.\nIf you want to edit an existing site, please pick from logs/sites.log\n",
+                        f"Name for excel {excel_file} ({name}) does not exist, but site will be added.\nIf you want to edit an existing site, please pick from logs/sites.log\n",
                     )
-                    return True, new_count, False
 
                 key_prefix = strip_string(f"ldsh&&{industry}&&{cluster}&&{name}")
             sheet_data["data"][f"{key_prefix}&&ldsh_enabled"] = 1
