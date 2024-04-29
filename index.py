@@ -217,9 +217,13 @@ def extract_excel_data(excel_file, cc_data, new_count):
             current_flexibility = 1
             n_rows = excel_content[excel_content.columns[0]].count()
             for row_n in range(2, n_rows):
+                if (
+                    excel_content.iloc[row_n, 1] != ""
+                    or excel_content.iloc[row_n, 2] != ""
+                ):
+                    current_flexibility = 1
                 if excel_content.iloc[row_n, 1] != "":
                     year = str(int(excel_content.iloc[row_n, 1]))
-                    current_flexibility = 1
                 if excel_content.iloc[row_n, 2]:
                     year_suffix = str(excel_content.iloc[row_n, 2])
                 row_preheader = "base" if year == "2021" else "future"
