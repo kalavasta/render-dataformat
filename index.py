@@ -99,16 +99,19 @@ def extract_excel_data(excel_file, cc_data, new_count):
     key_prefix = ""
     error = False
     new_site = False
+
     for sheet_key, sheet_value in SHEETS.items():
         excel_content = pd.read_excel(
             excel_file, engine="openpyxl", sheet_name=sheet_value
         )
         excel_content = excel_content.fillna("")
+
         if sheet_key == "company_details":
             industry = excel_content.iloc[14, 2]
             cluster = excel_content.iloc[15, 2]
             name = excel_content.iloc[13, 2]
             is_new_site = excel_content.iloc[10, 2].lower() == "nieuw"
+
             if industry not in cc_data["sectors"]:
                 found = False
                 for key in cc_data["sbi_codes"]:
@@ -128,7 +131,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 )
 
                 return True, new_count, False
-            if is_new_site:
+
+            if is_new_site or name not in cc_data["sites"]:
                 if is_new_site and name in cc_data["sites"]:
                     print(
                         f"Name for excel {excel_file} ({name}) already exists, site will be ignored.\nIf you want to add a new site, please pick a name that does not match one from logs/sites.log\n"
@@ -139,8 +143,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 key_prefix = f"ldsh&&##new_cc_site{new_count}##"
                 sheet_data["data"].update(
                     {
-                        f"{key_prefix}_industry": industry,
-                        f"{key_prefix}_cluster": cluster,
+                        f"{key_prefix}&&industry": industry,
+                        f"{key_prefix}&&cluster": cluster,
                     }
                 )
                 new_count += 1
@@ -158,6 +162,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     )
 
                 key_prefix = strip_string(f"ldsh&&{industry}&&{cluster}&&{name}")
+
             sheet_data["data"][f"{key_prefix}&&ldsh_enabled"] = 1
 
             for row_n in range(7, 20):
@@ -165,6 +170,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     f"{key_prefix}&&{sheet_key}_{excel_content.iloc[row_n, 1]}"
                 )
                 sheet_data["data"].update({key: excel_content.iloc[row_n, 2]})
+
             changes.append(key_prefix.replace("ldsh&&", ""))
 
         elif sheet_key == "emissions_and_energy":
@@ -234,6 +240,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                             {key: excel_content.iloc[row_n, col_n]}
                         )
                 current_flexibility += 1
+
     return error, new_count, new_site
 
 
