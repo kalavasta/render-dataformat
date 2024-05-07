@@ -171,7 +171,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 )
                 sheet_data["data"].update({key: excel_content.iloc[row_n, 2]})
 
-            changes.append(key_prefix.replace("ldsh&&", ""))
+            if name in cc_data["sites"]:
+                changes.append(key_prefix.replace("ldsh&&", ""))
 
         elif sheet_key == "emissions_and_energy":
             year = ""
