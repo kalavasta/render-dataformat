@@ -176,7 +176,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     value = int(value)
                 sheet_data["data"].update({key: value})
 
-            if name in cc_data["sites"]:
+            if strip_string(name) in cc_data["cc_sites"]:
                 changes.append(key_prefix.replace("ldsh&&", ""))
 
         elif sheet_key == "emissions_and_energy":
