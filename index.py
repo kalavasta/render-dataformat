@@ -169,7 +169,12 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 key = strip_string(
                     f"{key_prefix}&&{sheet_key}_{excel_content.iloc[row_n, 1]}"
                 )
-                sheet_data["data"].update({key: excel_content.iloc[row_n, 2]})
+                value = excel_content.iloc[row_n, 2]
+
+                # Convert EAN to int
+                if row_n == 16 or row_n == 17:
+                    value = int(value)
+                sheet_data["data"].update({key: value})
 
             if name in cc_data["sites"]:
                 changes.append(key_prefix.replace("ldsh&&", ""))
