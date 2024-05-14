@@ -15,6 +15,7 @@ SHEETS = {
 }
 
 YEARS = [
+    "2021",
     "2030",
     "2035",
     "2040_eigen_toekomstbeeld_bedrijf",
