@@ -254,11 +254,19 @@ def extract_excel_data(excel_file, cc_data, new_count):
 def create_json_files():
     for year_key in YEARS:
         filename = f"{json_folder}/{str(year_key)}.json"
+        year_data = sheet_data[year_key]
+
+        if year_key == "2021":
+            year_data = {}
+            for key, value in sheet_data["data"].items():
+                new_key = re.sub("_base$", "_future", key)
+                year_data[new_key] = value
+
         create_file(
             filename,
             {
                 **sheet_data["data"],
-                **sheet_data[year_key],
+                **year_data,
                 "new_sites": new_sites,
                 "changes": changes,
             },
