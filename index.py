@@ -5,6 +5,7 @@ import pandas as pd
 import requests
 import sys
 import re
+from collections import defaultdict
 
 # Constants
 SHEETS = {
@@ -37,6 +38,7 @@ excel_folder = sys.argv[1]
 json_folder = sys.argv[2]
 sheet_data = {key: {} for key in YEARS}
 sheet_data.update({"data": {}})
+enable_cc_input = {}
 new_sites = {}
 changes = []
 
@@ -125,7 +127,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs.\nPlease pick an industry from logs/industries.log or an SBI code from logs/sbi_codes.log\n"
                     )
                     return True, new_count, False
-
+            altered_industry = strip_string(industry)
             if cluster not in cc_data["clusters"]:
                 print(
                     f"Cluster for excel {excel_file} ({cluster}) does not exist, it will be emitted from the inputs.\nPlease pick a cluster from logs/clusters.log\n"
@@ -248,7 +250,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         )
                 current_flexibility += 1
 
-    return error, new_count, new_site
+    return error, new_count, new_site, altered_industry
 
 
 def create_json_files():
@@ -267,23 +269,44 @@ def create_json_files():
             {
                 **sheet_data["data"],
                 **year_data,
+                **enable_cc_input,
                 "new_sites": new_sites,
                 "changes": changes,
             },
         )
 
-
+enable_cc_input = {}
 # Main
 def main():
     new_count = 1
+    altered_industries = set()
     for file in os.listdir(excel_folder):
         if file.endswith(".xlsx") and file[0] != "~":
             excel_file = f"{excel_folder}/{file}"
-            [error, new_count, new_site] = extract_excel_data(
+            [error, new_count, new_site, altered_industry] = extract_excel_data(
                 excel_file, cc_data, new_count
             )
+            altered_industries.add(altered_industry)
             if new_site:
                 new_sites.update(new_site)
+
+    def return_emtpy_list():
+        return []
+    enabled_dict = {industry: defaultdict(return_emtpy_list) for industry in altered_industries}
+
+    cc_sites = cc_data['cc_sites']
+
+    for site, site_info in cc_sites.items():
+        industry = site_info['sector']
+        cluster = site_info['cluster']
+        site = site_info['site']        
+        if industry in altered_industries:
+            enable_cc_input[f"{industry}&&sector&&enabled"] = 0
+            enable_cc_input[f"{industry}&&{cluster}&&cluster&&enabled"] = 0
+            enable_cc_input[f"{industry}&&{cluster}&&{site}&&enabled"] = 1
+    for new_site in new_sites:
+        enable_cc_input[f"{new_site[6:]}&&enabled"] = 1
+
     create_json_files()
     create_file("logs/industries.log", cc_data["sectors"])
     create_file("logs/clusters.log", cc_data["clusters"])
