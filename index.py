@@ -41,7 +41,7 @@ new_sites = {}
 changes = []
 
 # Obtain list of sectors, clusters, and sites
-response = requests.get(f"{API_URL}/api/getClusterInfo")
+response = requests.get(f"{API_URL}/api/getClusterInfo/")
 cc_data = response.json()
 
 

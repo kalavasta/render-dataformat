@@ -4,3 +4,4 @@ json/*
 !json/.gitkeep
 logs/*
 !logs/.gitkeep
+venv
