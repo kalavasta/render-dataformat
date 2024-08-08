@@ -10,6 +10,7 @@ import re
 
 # Constants
 SHEET = "Site_resultaten_voor_upload"
+N_ROWS = 2600
 
 YEARS = [
     "2021",
@@ -111,7 +112,11 @@ def extract_excel_data(excel_file, cc_data, new_count):
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
 
-    for row_n in range(12, 2600):
+    for row_n in range(12, (N_ROWS - 2)):
+        if excel_content.iloc[row_n, 0] == "":
+            print(f"Row {row_n + 2}: Empty row, skipping...")
+            continue
+
         industry = excel_content.iloc[row_n, 2]
         cluster = excel_content.iloc[row_n, 3]
         name = excel_content.iloc[row_n, 1]
