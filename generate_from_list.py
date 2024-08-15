@@ -179,7 +179,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
         sheet_data[year_key][f"{key_prefix}&&ldsh_enabled"] = 1
 
         for col_n in range(8, 61):
-            key = strip_string(f"{key_prefix}&&{excel_content.iloc[7, col_n]}")
+            col_name = excel_content.iloc[7, col_n]
+            if col_name == "":
+                continue
+            key = strip_string(f"{key_prefix}&&{col_name}")
             value = excel_content.iloc[row_n, col_n]
             print(f"Row {row_n + 2}:", year_key, key, value)
             sheet_data[year_key].update({key: value})
