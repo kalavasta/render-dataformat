@@ -59,6 +59,7 @@ def strip_string(string):
         .replace(",", "")
         .replace("(", "")
         .replace(")", "")
+        .replace("'", "")
         .replace("<", "_less_than_")
         .replace(">", "_more_than_")
         .replace("%", "")
