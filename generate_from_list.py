@@ -9,7 +9,7 @@ import sys
 import re
 
 # Constants
-N_ROWS = 2600  # Number of rows in the excel file, update if necessary
+N_ROWS = 2286  # Number of rows in the excel file, update if necessary
 SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
 
 YEARS = [
