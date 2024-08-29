@@ -108,7 +108,8 @@ def create_file(filename, data):
 def extract_excel_data(excel_file, cc_data, new_count):
     key_prefix = ""
     error = False
-    new_site = False
+    new_site = {}
+    included_new_sites = {}
 
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
@@ -155,20 +156,28 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 return True, new_count, False
 
             key_prefix = f"ldsh&&##new_cc_site{new_count}##"
-            sheet_data[year_key].update(
-                {
-                    f"{key_prefix}&&industry": industry,
-                    f"{key_prefix}&&cluster": cluster,
-                }
-            )
-            new_count += 1
-            new_site = {
-                key_prefix: {
-                    "site": name,
-                    "sector": industry,
-                    "cluster": cluster,
-                }
-            }
+            
+
+            if name not in included_new_sites:
+                to_change = f"##new_cc_site{new_count}##"
+                included_new_sites[name] = key_prefix
+
+                sheet_data[year_key].update(
+                    {
+                        f"{key_prefix}&&industry": industry,
+                        f"{key_prefix}&&cluster": cluster,
+                    }
+                )
+                new_count += 1
+                new_site[key_prefix] = {
+                        "site": name,
+                        "sector": industry,
+                        "cluster": cluster,
+                    }
+            else:
+                key_prefix = included_new_sites[name]
+
+            
         else:
             if name not in cc_data["sites"]:
                 print(
@@ -176,6 +185,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 )
 
             key_prefix = strip_string(f"ldsh&&{industry}&&{cluster}&&{name}")
+            to_change = strip_string(f"{industry}&&{cluster}&&{name}")
+
+        changes.append(to_change)
+
 
         sheet_data[year_key][f"{key_prefix}&&ldsh_enabled"] = 1
 
@@ -185,7 +198,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 continue
             key = strip_string(f"{key_prefix}&&{col_name}")
             value = excel_content.iloc[row_n, col_n]
-            print(f"Row {row_n + 2}:", year_key, key, value)
+            # print(f"Row {row_n + 2}:", year_key, key, value)
             sheet_data[year_key].update({key: value})
 
     if strip_string(name) in cc_data["cc_sites"]:
@@ -204,7 +217,7 @@ def create_json_files():
             {
                 **year_data,
                 "new_sites": new_sites,
-                "changes": changes,
+                "changes": list(set(changes)),
             },
         )
 
