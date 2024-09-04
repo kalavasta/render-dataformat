@@ -413,7 +413,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     col_preheader = ""
                     col_n = 5
                     
-                    while excel_content.iloc[1, col_n] != "":
+                    while excel_content.shape[1] < col_n and excel_content.iloc[1, col_n] != "" :
                         if excel_content.iloc[0, col_n] != "":
                             col_preheader = excel_content.iloc[0, col_n]
 
