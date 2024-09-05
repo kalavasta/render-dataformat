@@ -7,9 +7,10 @@ import pandas as pd
 import requests
 import sys
 import re
+import glob
 
 # Constants
-N_ROWS = 2286  # Number of rows in the excel file, update if necessary
+  # Number of rows in the excel file, update if necessary
 SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
 
 YEARS = [
@@ -52,6 +53,14 @@ changes = []
 response = requests.get(f"{API_URL}/api/getClusterInfo/")
 cc_data = response.json()
 
+json_files = glob.glob(os.path.join(json_folder, '*.json'))
+for json_file in json_files:
+    try:
+        os.remove(json_file)
+    except Exception as e:
+        print(f"Error deleting {json_file}: {e}")
+
+N_ROWS = 2286
 
 # Functions
 def strip_string(string):
@@ -113,8 +122,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
-
-    for row_n in range(12, (N_ROWS - 2)):
+    N_ROWS = len(excel_content)
+    for row_n in range(12, (N_ROWS)):
         if excel_content.iloc[row_n, 0] == "":
             print(f"Row {row_n + 2}: Empty row, skipping...")
             continue
@@ -162,21 +171,23 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 to_change = f"##new_cc_site{new_count}##"
                 included_new_sites[name] = key_prefix
 
-                sheet_data[year_key].update(
-                    {
-                        f"{key_prefix}&&industry": industry,
-                        f"{key_prefix}&&cluster": cluster,
-                    }
-                )
                 new_count += 1
                 new_site[key_prefix] = {
                         "site": name,
                         "sector": industry,
                         "cluster": cluster,
                     }
+
             else:
                 key_prefix = included_new_sites[name]
 
+            sheet_data[year_key].update(
+                {
+                    f"{key_prefix}&&industry": industry,
+                    f"{key_prefix}&&cluster": cluster,
+                    f"{key_prefix}&&company_details_locatie": name
+                }
+            )
             
         else:
             if name not in cc_data["sites"]:
@@ -189,7 +200,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
         changes.append(to_change)
 
-
         sheet_data[year_key][f"{key_prefix}&&ldsh_enabled"] = 1
 
         for col_n in range(8, 61):
@@ -198,8 +208,9 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 continue
             key = strip_string(f"{key_prefix}&&{col_name}")
             value = excel_content.iloc[row_n, col_n]
-            # print(f"Row {row_n + 2}:", year_key, key, value)
+            
             sheet_data[year_key].update({key: value})
+        
 
     if strip_string(name) in cc_data["cc_sites"]:
         changes.append(key_prefix.replace("ldsh&&", ""))
