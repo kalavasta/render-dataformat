@@ -235,7 +235,7 @@ def create_json_files():
 
 # Main
 def main():
-    new_count = 1
+    new_count = 50
     for file in os.listdir(excel_folder):
         if file.endswith(".xlsx") and file[0] != "~":
             excel_file = f"{excel_folder}/{file}"
