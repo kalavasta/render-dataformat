@@ -81,7 +81,7 @@ def extract_site_data():
             if year_name_temp != "":
                 year_name = year_name_temp
                 year_number = re.findall(r"\d{4}", year_name)[0]
-                year_title = (
+                year_title = strip_string(
                     "base"
                     if year_number == "2021"
                     else re.split(r"\d{4} ", year_name)[1]
@@ -96,7 +96,7 @@ def extract_site_data():
             ):
                 site_name = excel_content.iloc[row_n, 2]
                 site_data[site_name] = {}
-                site_data[site_name]["1. Uitleg en Bedrijfsgegevens"] = (
+                site_data[site_name][strip_string("1. Uitleg en Bedrijfsgegevens")] = (
                     get_company_info(site_name)
                 )
 
@@ -127,63 +127,78 @@ def extract_site_data():
     create_file(filename, site_data)  # @TODO: Remove line
 
 
-def update_sheet(excel_template_data_sheet, excel_template_layout_sheet):
-    sheet_rows = dataframe_to_rows(excel_template_data_sheet, index=False, header=False)
-    for r_idx, row in enumerate(sheet_rows, 1):
-        for c_idx, value in enumerate(row, 1):
-            cell = excel_template_layout_sheet.cell(row=r_idx, column=c_idx)
-            cell_coordinate = f"{get_column_letter(c_idx)}{r_idx}"
-            if isinstance(cell, openpyxl.cell.MergedCell):
-                # Find the top-left cell of the merged range
-                for merged_range in excel_template_layout_sheet.merged_cells.ranges:
-                    if cell_coordinate in merged_range:
-                        top_left_cell = excel_template_layout_sheet.cell(
-                            row=merged_range.min_row, column=merged_range.min_col
-                        )
-                        top_left_cell.value = value
-                        break
-            else:
-                cell.value = value
-
-
 def insert_site_data():
     print("Inserting site data")
     for site_name in site_data:
-        # excel_template_layout = openpyxl.load_workbook(SOURCE_FILE)
         excel_template_layout = xw.Book(SOURCE_FILE)
 
         for sheet_name in excel_template_layout.sheet_names:
-            excel_template_layout.sheets[sheet_name]["C15"].value = site_name
-            # excel_template_layout_sheet = excel_template_layout[sheet_name]
-            # excel_template_data_sheet = pd.read_excel(
-            #     SOURCE_FILE, engine="openpyxl", sheet_name=sheet_name
-            # )
+            print(sheet_name)
+            sheet = excel_template_layout.sheets[sheet_name]
+            stripped_sheet_name = strip_string(sheet_name)
+            sheet_data = site_data[site_name].get(stripped_sheet_name, False)
 
-            # if sheet_name == "1. Uitleg en Bedrijfsgegevens":
-            #     data = site_data[site_name][sheet_name]
-            #     print(data)
-            #     excel_template_data_sheet.iloc[11, 2] = data["latitude"]
-            #     excel_template_data_sheet.iloc[12, 2] = data["longitude"]
-            #     excel_template_data_sheet.iloc[13, 2] = site_name
+            if sheet_data == False:
+                continue
 
-            # update_sheet(excel_template_data_sheet, excel_template_layout_sheet)
+            if stripped_sheet_name == strip_string("1. Uitleg en Bedrijfsgegevens"):
+
+                sheet["C9"].value = sheet_data.get("address", "")
+                sheet["C10"].value = sheet_data.get("city", "")
+                sheet["C11"].value = sheet_data.get("postal_code", "")
+                sheet["C12"].value = sheet_data.get("new_or_existing", "")
+                sheet["C13"].value = sheet_data.get("latitude", "")
+                sheet["C14"].value = sheet_data.get("longitude", "")
+                sheet["C15"].value = site_name
+                sheet["C16"].value = sheet_data.get("sector", "")
+                sheet["C17"].value = sheet_data.get("cluster", "")
+                sheet["C18"].value = f"{sheet_data.get("ean_electricity", "")}" # @TODO: Fix rounding error
+                sheet["C19"].value = f"{sheet_data.get("ean_gas", "")}" # @TODO: Fix rounding error
+                sheet["C20"].value = sheet_data.get("grid_operator_electricity", "")
+                sheet["C21"].value = sheet_data.get("grid_operator_gas", "")
+
+            if (
+                stripped_sheet_name == strip_string("Koersvaste Ambitie")
+                or stripped_sheet_name == strip_string("Eigen Vermogen")
+                or stripped_sheet_name == strip_string("Gemeenschappelijke balans")
+                or stripped_sheet_name == strip_string("Horizon aanvoer")
+            ):
+              for year in (['2021'] + list(sheet_data.keys())):
+                rows = {
+                    '2021': 4,
+                    '2030': 10,
+                    '2035': 13,
+                    '2040': 16,
+                    '2050': 19,
+                }
+
+                data = site_data[site_name]['base']['2021'] if year == '2021' else sheet_data[year]
+
+                for i in range(0, 2):
+                    demand_or_supply = "Demand" if i == 0 else "Supply"
+                    row = rows[year] + i
+                    sheet[f"K{row}"].value = data[demand_or_supply].get("co2_fossil", "")
+                    sheet[f"L{row}"].value = data[demand_or_supply].get("co2_bio", "")
+                    sheet[f"M{row}"].value = data[demand_or_supply].get("electricity_anual", "")
+                    sheet[f"N{row}"].value = data[demand_or_supply].get("electricity_peak", "")
+                    sheet[f"P{row}"].value = data[demand_or_supply].get("natural_gas", "")
+                    sheet[f"Q{row}"].value = data[demand_or_supply].get("hydrogen_more_than_98", "")
+                    sheet[f"R{row}"].value = data[demand_or_supply].get("hydrogen_less_than_98", "")
+                    sheet[f"S{row}"].value = data[demand_or_supply].get("heat_less_than_100", "")
+                    sheet[f"T{row}"].value = data[demand_or_supply].get("heat_more_than_100", "")
+
 
         # Create output file
         os.makedirs(output_folder, exist_ok=True)
         excel_template_layout.save(f"{output_folder}/{site_name}.xlsx")
         excel_template_layout.close()
-        exit(0)
+        # exit(0)
 
 
 # Main
 def main():
     # Extract data from the input file
     extract_site_data()
-
-    # Create output files
-    # print(f"Creating output files")
-    # for site_name in site_data:
-    #     create_output_file(site_name)
 
     # Put data in output files
     insert_site_data()
