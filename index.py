@@ -22,7 +22,7 @@ SHEETS_NEW_SETUP = {
     "eigen_vermogen": "Eigen Vermogen",
     "gemeenschappelijke_balans": "Gemeenschappelijke balans",
     "horizon_aanvoer": "Horizon aanvoer",
-    "flex": "4. Flexibiliteit (begeleid)"
+    "flex": "4. Flexibiliteit (begeleid)",
 }
 
 YEARS = [
@@ -43,7 +43,12 @@ YEARS = [
 
 years_option = ["2030", "2035", "2040", "2050"]
 
-YEARS_NEW = [f"{year}_{new_sheet}" for year in years_option for new_sheet in SHEETS_NEW_SETUP if new_sheet != "flex" and new_sheet != "company_details"] + ["2021"]
+YEARS_NEW = [
+    f"{year}_{new_sheet}"
+    for year in years_option
+    for new_sheet in SHEETS_NEW_SETUP
+    if new_sheet != "flex" and new_sheet != "company_details"
+] + ["2021"]
 
 API_URL = "https://carbontransitionmodel.com"
 
@@ -51,7 +56,7 @@ API_URL = "https://carbontransitionmodel.com"
 excel_folder = sys.argv[1]
 json_folder = sys.argv[2]
 sheet_data = {key: {} for key in YEARS + YEARS_NEW}
-sheet_updated = {key: key=="2021" for key in YEARS + YEARS_NEW}
+sheet_updated = {key: key == "2021" for key in YEARS + YEARS_NEW}
 sheet_data.update({"data": {}})
 new_sites = {}
 changes = []
@@ -121,7 +126,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
     wb = openpyxl.load_workbook(excel_file)
 
     sheets = wb.sheetnames
-    if not (set(sheets) - {"1. Uitleg en Bedrijfsgegevens","4. Flexibiliteit (begeleid)"} & set(SHEETS_NEW_SETUP.values())):
+    if not (
+        set(sheets) - {"1. Uitleg en Bedrijfsgegevens", "4. Flexibiliteit (begeleid)"}
+        & set(SHEETS_NEW_SETUP.values())
+    ):
         for sheet_key, sheet_value in SHEETS.items():
             excel_content = pd.read_excel(
                 excel_file, engine="openpyxl", sheet_name=sheet_value
@@ -235,7 +243,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                                 {key: excel_content.iloc[row_n, col_n]}
                             )
                             sheet_updated[data_key] = True
-
 
             elif sheet_key == "flex":
                 year = ""
@@ -387,7 +394,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 year_suffix = sheet_key
                 check_ending = False
                 row_n = 2
-                while not check_ending or check_ending != "Verhaallijnen worden begeleid uitgevraagd.":
+                while (
+                    not check_ending
+                    or check_ending != "Verhaallijnen worden begeleid uitgevraagd."
+                ):
                     if excel_content.iloc[row_n, 1] != "":
                         year = (
                             str(int(excel_content.iloc[row_n, 1]))
@@ -398,7 +408,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         check_ending = excel_content.iloc[row_n, 1]
                         row_n += 1
                         continue
-                    
+
                     row_preheader = "base" if year == "2021" else "future"
                     row_header = (
                         "production"
@@ -412,9 +422,12 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                     col_preheader = ""
                     col_n = 5
-                    
-                    while col_n < excel_content.shape[1] and excel_content.iloc[1, col_n] != "" :
-                    # while excel_content.iloc[1, col_n] != "" :
+
+                    while (
+                        col_n < excel_content.shape[1]
+                        and excel_content.iloc[1, col_n] != ""
+                    ):
+                        # while excel_content.iloc[1, col_n] != "" :
                         if excel_content.iloc[0, col_n] != "":
                             col_preheader = excel_content.iloc[0, col_n]
 
@@ -426,7 +439,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                         if excel_content.iloc[row_n, col_n] != "":
                             year_key = strip_string(f"{year}_{year_suffix}")
-                            data_key = 'data' if year == "2021" else year_key
+                            data_key = "data" if year == "2021" else year_key
 
                             sheet_data[data_key].update(
                                 {key: excel_content.iloc[row_n, col_n]}
@@ -436,7 +449,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     row_n += 1
 
                     check_ending = excel_content.iloc[row_n, 1]
-
 
     return error, new_count, new_site
 
@@ -462,8 +474,9 @@ def create_json_files():
                 },
             )
 
+
 def remove_contents(folder_path, extension):
-    files = glob.glob(os.path.join(folder_path, f'*{extension}'))
+    files = glob.glob(os.path.join(folder_path, f"*{extension}"))
     for file_path in files:
         try:
             os.remove(file_path)
@@ -483,7 +496,7 @@ def main():
             )
             if new_site:
                 new_sites.update(new_site)
-    
+
     create_json_files()
     create_file("logs/industries.log", cc_data["sectors"])
     create_file("logs/clusters.log", cc_data["clusters"])

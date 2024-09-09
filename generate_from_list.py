@@ -10,33 +10,32 @@ import re
 import glob
 
 # Constants
-  # Number of rows in the excel file, update if necessary
 SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
 
 YEARS = [
     "2021",
     "2030",
-    "2030_eigen_toekomstbeeld_bedrijf",
     "2030_decentrale_initiatieven",
-    "2030_nationaal_leiderschap",
+    "2030_eigen_toekomstbeeld_bedrijf",
     "2030_europese_integratie",
     "2030_internationale_handel",
+    "2030_nationaal_leiderschap",
     "2035",
-    "2035_eigen_toekomstbeeld_bedrijf",
     "2035_decentrale_initiatieven",
-    "2035_nationaal_leiderschap",
+    "2035_eigen_toekomstbeeld_bedrijf",
     "2035_europese_integratie",
     "2035_internationale_handel",
-    "2040_eigen_toekomstbeeld_bedrijf",
+    "2035_nationaal_leiderschap",
     "2040_decentrale_initiatieven",
-    "2040_nationaal_leiderschap",
+    "2040_eigen_toekomstbeeld_bedrijf",
     "2040_europese_integratie",
     "2040_internationale_handel",
-    "2050_eigen_toekomstbeeld_bedrijf",
+    "2040_nationaal_leiderschap",
     "2050_decentrale_initiatieven",
-    "2050_nationaal_leiderschap",
+    "2050_eigen_toekomstbeeld_bedrijf",
     "2050_europese_integratie",
     "2050_internationale_handel",
+    "2050_nationaal_leiderschap",
 ]
 
 API_URL = "https://carbontransitionmodel.com"
@@ -53,7 +52,7 @@ changes = []
 response = requests.get(f"{API_URL}/api/getClusterInfo/")
 cc_data = response.json()
 
-json_files = glob.glob(os.path.join(json_folder, '*.json'))
+json_files = glob.glob(os.path.join(json_folder, "*.json"))
 for json_file in json_files:
     try:
         os.remove(json_file)
@@ -61,6 +60,7 @@ for json_file in json_files:
         print(f"Error deleting {json_file}: {e}")
 
 N_ROWS = 2286
+
 
 # Functions
 def strip_string(string):
@@ -165,7 +165,6 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 return True, new_count, False
 
             key_prefix = f"ldsh&&##new_cc_site{new_count}##"
-            
 
             if name not in included_new_sites:
                 to_change = f"##new_cc_site{new_count}##"
@@ -173,10 +172,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                 new_count += 1
                 new_site[key_prefix] = {
-                        "site": name,
-                        "sector": industry,
-                        "cluster": cluster,
-                    }
+                    "site": name,
+                    "sector": industry,
+                    "cluster": cluster,
+                }
 
             else:
                 key_prefix = included_new_sites[name]
@@ -185,10 +184,10 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 {
                     f"{key_prefix}&&industry": industry,
                     f"{key_prefix}&&cluster": cluster,
-                    f"{key_prefix}&&company_details_locatie": name
+                    f"{key_prefix}&&company_details_locatie": name,
                 }
             )
-            
+
         else:
             if name not in cc_data["sites"]:
                 print(
@@ -208,9 +207,8 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 continue
             key = strip_string(f"{key_prefix}&&{col_name}")
             value = excel_content.iloc[row_n, col_n]
-            
+
             sheet_data[year_key].update({key: value})
-        
 
     if strip_string(name) in cc_data["cc_sites"]:
         changes.append(key_prefix.replace("ldsh&&", ""))
