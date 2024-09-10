@@ -6,3 +6,5 @@ logs/*
 !logs/.gitkeep
 venv
 2035.json
+sessions.json
+test.json

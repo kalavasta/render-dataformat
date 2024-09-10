@@ -71,7 +71,7 @@ This script is used to combine multiple JSON files into sessions.
 
 ##### Usage
 
-Within the `scenarios` folder in the root of this repository you will find multiple folders. Add the JSON files you want your sessions to be created with to the corresponding folder. You can also add your own folders.
+Within the `scenarios` folder in the root of this repository you can add multiple folders. Add the JSON files you want your sessions to be created with to the corresponding folder. From each folder a session will be created.
 
 Run the following script.
 ```
