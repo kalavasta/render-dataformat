@@ -8,21 +8,38 @@ import pandas as pd
 import re
 import shutil
 from functions import strip_string, create_file
+import time
+import math
 
 SOURCE_FILE = "templates/Dataformat template.xlsx"
 INPUT_DATA_SHEETS = ["Chemie", "Raffinage", "Voedsel", "OpslagenVervoer"]
+FLEX_MEANS = {
+    "Flexible production of heat": "Hybride warmte",
+    "Flexible use of CHP": "Flexibele inzet van WKK",
+    "Buffering of electricity": "Opslag van elektriciteit",
+    "Buffering of heat": "Thermische buffer",
+    "Flexibility in process": "Procesflexibiliteit",
+    "Electrochemistry": "Electrochemie (inclusief groene H2 productie)",
+}
+AVAILABILITY = {"Medium": "medium", "High": "hoog", "Low": "laag"}
+STORY_LINES = [
+    "Koersvaste ambitie",
+    "Eigen vermogen",
+    "Gemeenschappelijke balans",
+    "Horizon aanvoer",
+]
+REDUCTION_SHIFT = {
+    "Reduction": "Reductie",
+    "Shift": "Verschuiving",
+}
+
+story_lines_stripped = []
+for item in STORY_LINES:
+    story_lines_stripped = story_lines_stripped + [strip_string(item)]
 
 input_file = sys.argv[1]
 output_folder = sys.argv[2]
 site_data = {}
-
-
-def create_output_file(site_name):
-    os.makedirs(output_folder, exist_ok=True)
-
-    destination_file = f"{output_folder}/{strip_string(site_name)}.xlsx"
-    shutil.copy(SOURCE_FILE, destination_file)
-    print(f"Created {destination_file}")
 
 
 def get_company_info(site_name):
@@ -57,12 +74,11 @@ def get_company_info(site_name):
         }
 
     if not site_name_found:
-        print(f"Site name {site_name} not found in the plants sheet")
-        sys.exit(1)
+        exit(f"Error: Site name `{site_name}` not found in the plants sheet")
 
 
 def extract_site_data():
-    print("Extracting site data")
+    print("> Extracting site data")
 
     for sheet in INPUT_DATA_SHEETS:
         excel_content = pd.read_excel(input_file, engine="openpyxl", sheet_name=sheet)
@@ -123,17 +139,77 @@ def extract_site_data():
                 "heat_more_than_100": excel_content.iloc[row_n, 16],
             }
 
-    filename = "./test.json"
-    create_file(filename, site_data)  # @TODO: Remove line
+    excel_content = pd.read_excel(input_file, engine="openpyxl", sheet_name="flex")
+    excel_content = excel_content.fillna("")
+    n_rows = len(excel_content)
+    SHEET_NAME = "4. Flexibiliteit (begeleid)"
+    stripped_sheet_name = strip_string(SHEET_NAME)
+
+    for row_n in range(3, n_rows):
+        site_name = excel_content.iloc[row_n, 1]
+
+        if not site_data.get(site_name):
+            continue
+
+        year_number = str(excel_content.iloc[row_n, 4])
+        year_titles = (
+            "base"
+            if excel_content.iloc[row_n, 5] == ""
+            else excel_content.iloc[row_n, 5]
+        )
+
+        if year_number == '2021' and year_titles != "base":
+            exit(f"Error: Storyline for `{site_name}` year 2021 (sheet `flex`, row {row_n + 2}) should be empty")
+
+        year_titles_list = re.split(", ", year_titles)
+
+        if not site_data[site_name].get(stripped_sheet_name):
+            site_data[site_name][stripped_sheet_name] = {}
+
+        if not site_data[site_name][stripped_sheet_name].get(year_number):
+            site_data[site_name][stripped_sheet_name][year_number] = {}
+
+        for year_title in year_titles_list:
+            if not strip_string(year_title) in (story_lines_stripped + ["base"]):
+                exit(f"Error: `{year_title}` (sheet `flex`, row {row_n + 2}) is not a valid storyline name, please use one of the following: {STORY_LINES}")
+
+            if not site_data[site_name][stripped_sheet_name][year_number].get(
+                strip_string(year_title)
+            ):
+                site_data[site_name][stripped_sheet_name][year_number][
+                    strip_string(year_title)
+                ] = []
+
+            site_data[site_name][stripped_sheet_name][year_number][
+                strip_string(year_title)
+            ] = site_data[site_name][stripped_sheet_name][year_number][
+                strip_string(year_title)
+            ] + [
+                {
+                    "flex_means": FLEX_MEANS[excel_content.iloc[row_n, 6]],
+                    "flexible_power": excel_content.iloc[row_n, 7],
+                    "availability": AVAILABILITY[excel_content.iloc[row_n, 8]],
+                    "operational_hours": excel_content.iloc[row_n, 9],
+                    "buffer_capacity": excel_content.iloc[row_n, 10],
+                    "performance_coefficient": excel_content.iloc[row_n, 11],
+                    "reduction_shift": (
+                        ""
+                        if excel_content.iloc[row_n, 12] == ""
+                        else REDUCTION_SHIFT[excel_content.iloc[row_n, 12]]
+                    ),
+                    "consecutive_hours": excel_content.iloc[row_n, 13],
+                }
+            ]
 
 
 def insert_site_data():
-    print("Inserting site data")
+    print("> Inserting site data")
     for site_name in site_data:
+        print(f"> Filling out data for `{site_name}`")
         excel_template_layout = xw.Book(SOURCE_FILE)
 
         for sheet_name in excel_template_layout.sheet_names:
-            print(sheet_name)
+            print(f"> Filling out sheet `{sheet_name}`")
             sheet = excel_template_layout.sheets[sheet_name]
             stripped_sheet_name = strip_string(sheet_name)
             sheet_data = site_data[site_name].get(stripped_sheet_name, False)
@@ -142,7 +218,6 @@ def insert_site_data():
                 continue
 
             if stripped_sheet_name == strip_string("1. Uitleg en Bedrijfsgegevens"):
-
                 sheet["C9"].value = sheet_data.get("address", "")
                 sheet["C10"].value = sheet_data.get("city", "")
                 sheet["C11"].value = sheet_data.get("postal_code", "")
@@ -164,7 +239,7 @@ def insert_site_data():
                 or stripped_sheet_name == strip_string("Horizon aanvoer")
             ):
               for year in (['2021'] + list(sheet_data.keys())):
-                rows = {
+                ROW = {
                     '2021': 4,
                     '2030': 10,
                     '2035': 13,
@@ -176,7 +251,7 @@ def insert_site_data():
 
                 for i in range(0, 2):
                     demand_or_supply = "Demand" if i == 0 else "Supply"
-                    row = rows[year] + i
+                    row = ROW[year] + i
                     sheet[f"K{row}"].value = data[demand_or_supply].get("co2_fossil", "")
                     sheet[f"L{row}"].value = data[demand_or_supply].get("co2_bio", "")
                     sheet[f"M{row}"].value = data[demand_or_supply].get("electricity_anual", "")
@@ -187,21 +262,77 @@ def insert_site_data():
                     sheet[f"S{row}"].value = data[demand_or_supply].get("heat_less_than_100", "")
                     sheet[f"T{row}"].value = data[demand_or_supply].get("heat_more_than_100", "")
 
+            if stripped_sheet_name == strip_string("4. Flexibiliteit (begeleid)"):
+                for year_number in site_data[site_name][stripped_sheet_name]:
+                    for year_title in site_data[site_name][stripped_sheet_name][
+                        year_number
+                    ]:
+                        ROW = {
+                            "2021": {"base": 4},
+                            "2030": {
+                                "eigen_vermogen": 12,
+                                "koersvaste_ambitie": 20,
+                                "gemeenschappelijke_balans": 28,
+                                "horizon_aanvoer": 36,
+                            },
+                            "2035": {
+                                "eigen_vermogen": 44,
+                                "koersvaste_ambitie": 52,
+                                "gemeenschappelijke_balans": 60,
+                                "horizon_aanvoer": 68,
+                            },
+                            "2040": {
+                                "eigen_vermogen": 76,
+                                "koersvaste_ambitie": 84,
+                                "gemeenschappelijke_balans": 92,
+                                "horizon_aanvoer": 100,
+                            },
+                            "2050": {
+                                "eigen_vermogen": 108,
+                                "koersvaste_ambitie": 116,
+                                "gemeenschappelijke_balans": 124,
+                                "horizon_aanvoer": 132,
+                            },
+                        }
+
+                        for n, data in enumerate(
+                            site_data[site_name][stripped_sheet_name][year_number][
+                                year_title
+                            ]
+                        ):
+                            row = ROW[year_number][year_title] + n
+                            sheet[f"D{row}"].value = data.get("flex_means", "")
+                            sheet[f"F{row}"].value = data.get("flexible_power", "")
+                            sheet[f"E{row}"].value = data.get("availability", "")
+                            sheet[f"H{row}"].value = data.get("operational_hours", "")
+                            sheet[f"I{row}"].value = data.get("buffer_capacity", "")
+                            sheet[f"J{row}"].value = data.get(
+                                "performance_coefficient", ""
+                            )
+                            sheet[f"K{row}"].value = data.get("reduction_shift", "")
+                            sheet[f"M{row}"].value = data.get("consecutive_hours", "")
 
         # Create output file
         os.makedirs(output_folder, exist_ok=True)
-        excel_template_layout.save(f"{output_folder}/{site_name}.xlsx")
+        filename = f"{output_folder}/{site_name}.xlsx";
+        excel_template_layout.save(filename)
+        print(f"Created `{filename}`")
         excel_template_layout.close()
-        # exit(0)
 
 
 # Main
 def main():
+    time_start = time.time()
+
     # Extract data from the input file
     extract_site_data()
 
     # Put data in output files
     insert_site_data()
+
+    time_end = time.time()
+    duration = time_end - time_start
+    print(f'Done, process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds')
 
 
 if __name__ == "__main__":
