@@ -42,7 +42,7 @@ output_folder = sys.argv[2]
 site_data = {}
 
 
-def get_company_info(site_name):
+def get_company_info(site_name, sheet_name, parent_row_n):
     excel_content = pd.read_excel(input_file, engine="openpyxl", sheet_name="plants")
     excel_content = excel_content.fillna("")
 
@@ -67,14 +67,16 @@ def get_company_info(site_name):
             "longitude": excel_content.iloc[row_n, 10],
             "sector": excel_content.iloc[row_n, 8],
             "cluster": excel_content.iloc[row_n, 3].strip(),
-            "ean_electricity": excel_content.iloc[row_n, 11],
-            "ean_gas": excel_content.iloc[row_n, 12],
+            "ean_electricity": f"'{excel_content.iloc[row_n, 11]}",
+            "ean_gas": f"'{excel_content.iloc[row_n, 12]}",
             "grid_operator_electricity": excel_content.iloc[row_n, 13].strip(),
             "grid_operator_gas": excel_content.iloc[row_n, 14].strip(),
         }
 
     if not site_name_found:
-        exit(f"Error: Site name `{site_name}` not found in the plants sheet")
+        exit(
+            f"Error: Site name `{site_name}` (sheet `{sheet_name}`, row {parent_row_n + 2}) not found in the plants sheet"
+        )
 
 
 def extract_site_data():
@@ -113,7 +115,7 @@ def extract_site_data():
                 site_name = excel_content.iloc[row_n, 2]
                 site_data[site_name] = {}
                 site_data[site_name][strip_string("1. Uitleg en Bedrijfsgegevens")] = (
-                    get_company_info(site_name)
+                    get_company_info(site_name, sheet, row_n)
                 )
 
             if site_name == "":
@@ -158,8 +160,10 @@ def extract_site_data():
             else excel_content.iloc[row_n, 5]
         )
 
-        if year_number == '2021' and year_titles != "base":
-            exit(f"Error: Storyline for `{site_name}` year 2021 (sheet `flex`, row {row_n + 2}) should be empty")
+        if year_number == "2021" and year_titles != "base":
+            exit(
+                f"Error: Storyline for `{site_name}` year 2021 (sheet `flex`, row {row_n + 2}) should be empty"
+            )
 
         year_titles_list = re.split(", ", year_titles)
 
@@ -171,7 +175,9 @@ def extract_site_data():
 
         for year_title in year_titles_list:
             if not strip_string(year_title) in (story_lines_stripped + ["base"]):
-                exit(f"Error: `{year_title}` (sheet `flex`, row {row_n + 2}) is not a valid storyline name, please use one of the following: {STORY_LINES}")
+                exit(
+                    f"Error: `{year_title}` (sheet `flex`, row {row_n + 2}) is not a valid storyline name, please use one of the following: {STORY_LINES}"
+                )
 
             if not site_data[site_name][stripped_sheet_name][year_number].get(
                 strip_string(year_title)
@@ -204,7 +210,7 @@ def extract_site_data():
 
 def insert_site_data():
     print("> Inserting site data")
-    for site_name in site_data:
+    for site_n, site_name in enumerate(site_data):
         print(f"> Filling out data for `{site_name}`")
         excel_template_layout = xw.Book(SOURCE_FILE)
 
@@ -227,8 +233,8 @@ def insert_site_data():
                 sheet["C15"].value = site_name
                 sheet["C16"].value = sheet_data.get("sector", "")
                 sheet["C17"].value = sheet_data.get("cluster", "")
-                sheet["C18"].value = f"{sheet_data.get("ean_electricity", "")}" # @TODO: Fix rounding error
-                sheet["C19"].value = f"{sheet_data.get("ean_gas", "")}" # @TODO: Fix rounding error
+                sheet["C18"].value = sheet_data.get("ean_electricity", "")
+                sheet["C19"].value = sheet_data.get("ean_gas", "")
                 sheet["C20"].value = sheet_data.get("grid_operator_electricity", "")
                 sheet["C21"].value = sheet_data.get("grid_operator_gas", "")
 
@@ -238,29 +244,51 @@ def insert_site_data():
                 or stripped_sheet_name == strip_string("Gemeenschappelijke balans")
                 or stripped_sheet_name == strip_string("Horizon aanvoer")
             ):
-              for year in (['2021'] + list(sheet_data.keys())):
-                ROW = {
-                    '2021': 4,
-                    '2030': 10,
-                    '2035': 13,
-                    '2040': 16,
-                    '2050': 19,
-                }
+                for year in ["2021"] + list(sheet_data.keys()):
+                    ROW = {
+                        "2021": 4,
+                        "2030": 10,
+                        "2035": 13,
+                        "2040": 16,
+                        "2050": 19,
+                    }
 
-                data = site_data[site_name]['base']['2021'] if year == '2021' else sheet_data[year]
+                    data = (
+                        site_data[site_name]["base"]["2021"]
+                        if year == "2021"
+                        else sheet_data[year]
+                    )
 
-                for i in range(0, 2):
-                    demand_or_supply = "Demand" if i == 0 else "Supply"
-                    row = ROW[year] + i
-                    sheet[f"K{row}"].value = data[demand_or_supply].get("co2_fossil", "")
-                    sheet[f"L{row}"].value = data[demand_or_supply].get("co2_bio", "")
-                    sheet[f"M{row}"].value = data[demand_or_supply].get("electricity_anual", "")
-                    sheet[f"N{row}"].value = data[demand_or_supply].get("electricity_peak", "")
-                    sheet[f"P{row}"].value = data[demand_or_supply].get("natural_gas", "")
-                    sheet[f"Q{row}"].value = data[demand_or_supply].get("hydrogen_more_than_98", "")
-                    sheet[f"R{row}"].value = data[demand_or_supply].get("hydrogen_less_than_98", "")
-                    sheet[f"S{row}"].value = data[demand_or_supply].get("heat_less_than_100", "")
-                    sheet[f"T{row}"].value = data[demand_or_supply].get("heat_more_than_100", "")
+                    for i in range(0, 2):
+                        demand_or_supply = "Demand" if i == 0 else "Supply"
+                        row = ROW[year] + i
+                        sheet[f"K{row}"].value = data[demand_or_supply].get(
+                            "co2_fossil", ""
+                        )
+                        sheet[f"L{row}"].value = data[demand_or_supply].get(
+                            "co2_bio", ""
+                        )
+                        sheet[f"M{row}"].value = data[demand_or_supply].get(
+                            "electricity_anual", ""
+                        )
+                        sheet[f"N{row}"].value = data[demand_or_supply].get(
+                            "electricity_peak", ""
+                        )
+                        sheet[f"P{row}"].value = data[demand_or_supply].get(
+                            "natural_gas", ""
+                        )
+                        sheet[f"Q{row}"].value = data[demand_or_supply].get(
+                            "hydrogen_more_than_98", ""
+                        )
+                        sheet[f"R{row}"].value = data[demand_or_supply].get(
+                            "hydrogen_less_than_98", ""
+                        )
+                        sheet[f"S{row}"].value = data[demand_or_supply].get(
+                            "heat_less_than_100", ""
+                        )
+                        sheet[f"T{row}"].value = data[demand_or_supply].get(
+                            "heat_more_than_100", ""
+                        )
 
             if stripped_sheet_name == strip_string("4. Flexibiliteit (begeleid)"):
                 for year_number in site_data[site_name][stripped_sheet_name]:
@@ -314,9 +342,9 @@ def insert_site_data():
 
         # Create output file
         os.makedirs(output_folder, exist_ok=True)
-        filename = f"{output_folder}/{site_name}.xlsx";
+        filename = f"{output_folder}/{site_name}.xlsx"
         excel_template_layout.save(filename)
-        print(f"Created `{filename}`")
+        print(f"Created `{filename}` ({site_n+1}/{len(site_data)})")
         excel_template_layout.close()
 
 
@@ -327,12 +355,17 @@ def main():
     # Extract data from the input file
     extract_site_data()
 
+    filename = "./test.json"
+    create_file(filename, site_data)  # @TODO: Remove line
+
     # Put data in output files
     insert_site_data()
 
     time_end = time.time()
     duration = time_end - time_start
-    print(f'Done, process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds')
+    print(
+        f"Done, process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds"
+    )
 
 
 if __name__ == "__main__":
