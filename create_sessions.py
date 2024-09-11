@@ -67,7 +67,7 @@ def main():
 
             sessions[session_name] = {
                 "name": session_name,
-                "id": session_id,
+                "SessionID": session_id,
                 "files": json_files,
             }
             print(f"> Session successfully created for `{session_name}`")
