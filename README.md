@@ -80,6 +80,11 @@ python create_sessions.py
 
 This will create a JSON file called `sessions.json` in the root folder. This file contains all the sessions that have been created.
 
+If you would like to use a default scenario other than 'Base year', you can add this as a parameter to the script. For example:
+```
+python create_sessions.py "Public CTM Scenario 2030"
+```
+
 
 #### create_dataformat.py
 
@@ -96,7 +101,7 @@ python create_dataformat.py <excel_file> <output_folder>
 This example script will use the excel file at the root of this project and create a file called `dataformat.xlsx`.
 
 ```
-python create_dataformat.py excel/input_dataformat.xlsx dataformats
+python create_dataformat.py input_dataformat.xlsx dataformats
 ```
 
 

@@ -1,7 +1,21 @@
 import os
 from functions import create_file
+import json
+import requests
+import copy
+import sys
+
+URL = "https://beta.carbontransitionmodel.com"
+DEFAULT_SCENARIO = "Base year"
 
 sessions = {}
+default_scenario = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SCENARIO
+req_json = {
+    "ScenarioID": "base",
+    "default_scenario": default_scenario,
+    "inputs": {},
+    "outputs": ["SessionID"],
+}
 
 
 def main():
@@ -24,17 +38,38 @@ def main():
             )
 
             session_name = subdir.replace(rootdir, "").replace("/", "")
-
-            sessions[session_name] = {
-                "name": session_name,
-                "id": "",
-                "files": json_files,
-            }
+            session_id = ""
 
             for file in json_files:
                 print(f"> Processing `{file}`")
+                filepath = os.path.join(subdir, file)
 
-    print(sessions)
+                with open(filepath) as f:
+                    if session_id == "":
+                        print(f"> Creating session for `{session_name}`")
+                    else:
+                        print(f"> Updating session for `{session_name}`")
+                    new_inputs = json.load(f)
+
+                    req = copy.deepcopy(req_json)
+                    req["inputs"] = new_inputs
+                    res = requests.post(url=f"{URL}/api/", json=req)
+                    res_json = res.json()
+
+                    if session_id == "":
+                        print(
+                            f"> Successfully created a session with id: {res_json['SessionID']}"
+                        )
+
+                    session_id = res_json["SessionID"]
+
+            sessions[session_name] = {
+                "name": session_name,
+                "id": session_id,
+                "files": json_files,
+            }
+            print(f"> Session successfully created for `{session_name}`")
+
     create_file("./sessions.json", sessions)
 
 
