@@ -20,7 +20,7 @@ pip install -r requirements.txt
 
 ### index.py
 
-This script will convert the excel files to json files that can be used in the transition model website.
+This script will convert the dataformat excel files to json files that can be used in the transition model website.
 
 The script will create a json file in the json folder for each year in the excel sheets. The json file will contain all the data from the excel file for that year, as well as all the data from the excel file for the base year (2021). The exported json files can be used in transition model website by uploading one of them via "Import Dataformats".
 
@@ -61,7 +61,7 @@ python generate_from_list.py <excel_folder> <json_folder>
 This example script will use the excel and json folder at the root of this project.
 
 ```
-python generate_from_list.py excel json
+python generate_from_list.py excel_cc json_cc
 ```
 
 ### create_sessions.py
