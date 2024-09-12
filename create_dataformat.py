@@ -278,7 +278,9 @@ def insert_site_data():
                         electricity_peak = data[dem_sup].get("electricity_peak", "")
                         electricity_generation_type = (
                             "WKK"
-                            if electricity_anual > 0 and electricity_peak > 0
+                            if dem_sup == "Supply"
+                            and electricity_anual > 0
+                            and electricity_peak > 0
                             else ""
                         )
                         row = ROW[year] + i
