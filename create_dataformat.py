@@ -367,8 +367,6 @@ def main():
     # Extract data from the input file
     extract_site_data()
 
-    create_file("./test.json", site_data)
-
     # Put data in output files
     insert_site_data()
 
