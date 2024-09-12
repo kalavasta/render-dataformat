@@ -8,11 +8,16 @@
 # │   ├── 2030_EV_instellingen.json (becomes 3_2030_EV_Instellingen.json)
 
 import os
+import shutil
 
 ROOT_DIR = "./scenarios"
 
 
 def main():
+    print(f"> Creating backup of `{ROOT_DIR}`")
+    shutil.copytree(ROOT_DIR, f"{ROOT_DIR}_backup")
+    print(f"> Backup created at `{ROOT_DIR}_backup`")
+
     for subdir, _, _ in os.walk(ROOT_DIR):
         if subdir == ROOT_DIR:
             continue
