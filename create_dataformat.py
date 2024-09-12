@@ -147,7 +147,7 @@ def extract_site_data():
     SHEET_NAME = "4. Flexibiliteit (begeleid)"
     stripped_sheet_name = strip_string(SHEET_NAME)
 
-    for row_n in range(3, n_rows):
+    for row_n in range(0, n_rows):
         site_name = excel_content.iloc[row_n, 1]
 
         if not site_data.get(site_name):
@@ -353,9 +353,6 @@ def main():
 
     # Extract data from the input file
     extract_site_data()
-
-    filename = "./test.json"
-    create_file(filename, site_data)  # @TODO: Remove line
 
     # Put data in output files
     insert_site_data()
