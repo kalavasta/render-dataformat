@@ -9,3 +9,4 @@ venv
 sessions.json
 test.json
 scenarios/*
+dataformats

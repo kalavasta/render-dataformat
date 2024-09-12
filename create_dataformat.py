@@ -260,33 +260,32 @@ def insert_site_data():
                     )
 
                     for i in range(0, 2):
-                        demand_or_supply = "Demand" if i == 0 else "Supply"
+                        dem_sup = "Demand" if i == 0 else "Supply"
+                        electricity_anual = data[dem_sup].get("electricity_anual", "")
+                        electricity_peak = data[dem_sup].get("electricity_peak", "")
+                        electricity_generation_type = (
+                            "WKK"
+                            if electricity_anual > 0 and electricity_peak > 0
+                            else ""
+                        )
                         row = ROW[year] + i
-                        sheet[f"K{row}"].value = data[demand_or_supply].get(
-                            "co2_fossil", ""
-                        )
-                        sheet[f"L{row}"].value = data[demand_or_supply].get(
-                            "co2_bio", ""
-                        )
-                        sheet[f"M{row}"].value = data[demand_or_supply].get(
-                            "electricity_anual", ""
-                        )
-                        sheet[f"N{row}"].value = data[demand_or_supply].get(
-                            "electricity_peak", ""
-                        )
-                        sheet[f"P{row}"].value = data[demand_or_supply].get(
-                            "natural_gas", ""
-                        )
-                        sheet[f"Q{row}"].value = data[demand_or_supply].get(
+
+                        sheet[f"K{row}"].value = data[dem_sup].get("co2_fossil", "")
+                        sheet[f"L{row}"].value = data[dem_sup].get("co2_bio", "")
+                        sheet[f"M{row}"].value = electricity_anual
+                        sheet[f"N{row}"].value = electricity_peak
+                        sheet[f"O{row}"].value = electricity_generation_type
+                        sheet[f"P{row}"].value = data[dem_sup].get("natural_gas", "")
+                        sheet[f"Q{row}"].value = data[dem_sup].get(
                             "hydrogen_more_than_98", ""
                         )
-                        sheet[f"R{row}"].value = data[demand_or_supply].get(
+                        sheet[f"R{row}"].value = data[dem_sup].get(
                             "hydrogen_less_than_98", ""
                         )
-                        sheet[f"S{row}"].value = data[demand_or_supply].get(
+                        sheet[f"S{row}"].value = data[dem_sup].get(
                             "heat_less_than_100", ""
                         )
-                        sheet[f"T{row}"].value = data[demand_or_supply].get(
+                        sheet[f"T{row}"].value = data[dem_sup].get(
                             "heat_more_than_100", ""
                         )
 
