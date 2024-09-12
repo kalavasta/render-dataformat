@@ -67,8 +67,8 @@ def get_company_info(site_name, sheet_name, parent_row_n):
             "longitude": excel_content.iloc[row_n, 10],
             "sector": excel_content.iloc[row_n, 8],
             "cluster": excel_content.iloc[row_n, 3].strip(),
-            "ean_electricity": f"'{excel_content.iloc[row_n, 11]}",
-            "ean_gas": f"'{excel_content.iloc[row_n, 12]}",
+            "ean_electricity": str(excel_content.iloc[row_n, 11]).strip(),
+            "ean_gas": str(excel_content.iloc[row_n, 12]).strip(),
             "grid_operator_electricity": excel_content.iloc[row_n, 13].strip(),
             "grid_operator_gas": excel_content.iloc[row_n, 14].strip(),
         }
