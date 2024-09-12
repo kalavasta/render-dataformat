@@ -57,6 +57,19 @@ def get_company_info(site_name, sheet_name, parent_row_n):
 
         site_name_found = True
 
+        ean_electricity = excel_content.iloc[row_n, 11]
+        ean_gas = excel_content.iloc[row_n, 12]
+
+        if not isinstance(ean_electricity, str):
+            exit(
+                f"Error: EAN electricity for `{site_name}` is not a string (sheet `plants`, row {row_n + 2})"
+            )
+
+        if not isinstance(ean_gas, str):
+            exit(
+                f"Error: EAN gas for `{site_name}` is not a string (sheet `plants`, row {row_n + 2})"
+            )
+
         return {
             "site": site_name,
             "address": excel_content.iloc[row_n, 5].strip(),
@@ -67,15 +80,15 @@ def get_company_info(site_name, sheet_name, parent_row_n):
             "longitude": excel_content.iloc[row_n, 10],
             "sector": excel_content.iloc[row_n, 8],
             "cluster": excel_content.iloc[row_n, 3].strip(),
-            "ean_electricity": str(excel_content.iloc[row_n, 11]).strip(),
-            "ean_gas": str(excel_content.iloc[row_n, 12]).strip(),
+            "ean_electricity": excel_content.iloc[row_n, 11].strip(),
+            "ean_gas": excel_content.iloc[row_n, 12].strip(),
             "grid_operator_electricity": excel_content.iloc[row_n, 13].strip(),
             "grid_operator_gas": excel_content.iloc[row_n, 14].strip(),
         }
 
     if not site_name_found:
         exit(
-            f"Error: Site name `{site_name}` (sheet `{sheet_name}`, row {parent_row_n + 2}) not found in the plants sheet"
+            f"Error: Site name `{site_name} not found in the plants sheet (sheet `{sheet_name}`, row {parent_row_n + 2})"
         )
 
 
@@ -162,7 +175,7 @@ def extract_site_data():
 
         if year_number == "2021" and year_titles != "base":
             exit(
-                f"Error: Storyline for `{site_name}` year 2021 (sheet `flex`, row {row_n + 2}) should be empty"
+                f"Error: Storyline for `{site_name}` year 2021 should be empty (sheet `flex`, row {row_n + 2})"
             )
 
         year_titles_list = re.split(", ", year_titles)
@@ -176,7 +189,7 @@ def extract_site_data():
         for year_title in year_titles_list:
             if not strip_string(year_title) in (story_lines_stripped + ["base"]):
                 exit(
-                    f"Error: `{year_title}` (sheet `flex`, row {row_n + 2}) is not a valid storyline name, please use one of the following: {STORY_LINES}"
+                    f"Error: `{year_title}` is not a valid storyline name, please use one of the following: {STORY_LINES} (sheet `flex`, row {row_n + 2})"
                 )
 
             if not site_data[site_name][stripped_sheet_name][year_number].get(
@@ -233,8 +246,8 @@ def insert_site_data():
                 sheet["C15"].value = site_name
                 sheet["C16"].value = sheet_data.get("sector", "")
                 sheet["C17"].value = sheet_data.get("cluster", "")
-                sheet["C18"].value = sheet_data.get("ean_electricity", "")
-                sheet["C19"].value = sheet_data.get("ean_gas", "")
+                sheet["C18"].value = f"'{sheet_data.get("ean_electricity", "")}"
+                sheet["C19"].value = f"'{sheet_data.get("ean_gas", "")}"
                 sheet["C20"].value = sheet_data.get("grid_operator_electricity", "")
                 sheet["C21"].value = sheet_data.get("grid_operator_gas", "")
 
@@ -353,6 +366,8 @@ def main():
 
     # Extract data from the input file
     extract_site_data()
+
+    create_file("./test.json", site_data)
 
     # Put data in output files
     insert_site_data()
