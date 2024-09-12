@@ -7,6 +7,7 @@ import sys
 
 URL = "https://beta.carbontransitionmodel.com"
 DEFAULT_SCENARIO = "Base year"
+ROOT_DIR = "./scenarios"
 
 sessions = {}
 default_scenario = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_SCENARIO
@@ -19,13 +20,13 @@ req_json = {
 
 
 def main():
-    rootdir = "./scenarios"
 
-    for subdir, _, _ in os.walk(rootdir):
-        if subdir == rootdir:
+    for subdir, _, _ in os.walk(ROOT_DIR):
+        if subdir == ROOT_DIR:
             continue
 
-        print(f"> Starting `{subdir}`")
+        subdir_name = subdir.replace(ROOT_DIR, "").replace("/", "")
+        print(f"> Starting `{subdir_name}`")
 
         for _, _, files in os.walk(subdir):
             json_files = [file for file in files if file.endswith(".json")]
@@ -38,7 +39,7 @@ def main():
                 f"> Found {len(json_files)} JSON files in `{subdir}, creating session`"
             )
 
-            session_name = subdir.replace(rootdir, "").replace("/", "")
+            session_name = subdir.replace(ROOT_DIR, "").replace("/", "")
             session_id = ""
 
             for file in json_files:

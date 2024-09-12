@@ -376,7 +376,7 @@ def main():
     time_end = time.time()
     duration = time_end - time_start
     print(
-        f"Done, process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds"
+        f"Done! Process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds"
     )
 
 
