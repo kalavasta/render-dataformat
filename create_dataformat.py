@@ -34,6 +34,7 @@ REDUCTION_SHIFT = {
 }
 
 story_lines_stripped = []
+
 for item in STORY_LINES:
     story_lines_stripped = story_lines_stripped + [strip_string(item)]
 

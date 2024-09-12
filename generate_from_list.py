@@ -8,7 +8,7 @@ import requests
 import sys
 import re
 import glob
-from functions import create_file
+from functions import create_file, strip_string, represents_int
 
 # Constants
 SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
@@ -53,57 +53,17 @@ changes = []
 response = requests.get(f"{API_URL}/api/getClusterInfo/")
 cc_data = response.json()
 
+# Remove existing json files
 json_files = glob.glob(os.path.join(json_folder, "*.json"))
+
 for json_file in json_files:
     try:
         os.remove(json_file)
     except Exception as e:
         print(f"Error deleting {json_file}: {e}")
 
-N_ROWS = 2286
-
 
 # Functions
-def strip_string(string):
-    string = (
-        string.strip()
-        .replace("&&", "#replace#")
-        .replace("-", "_")
-        .replace(" ", "_")
-        .replace("?", "")
-        .replace("!", "")
-        .replace(".", "")
-        .replace("&", "")
-        .replace(",", "")
-        .replace("(", "")
-        .replace(")", "")
-        .replace("'", "")
-        .replace("<", "_less_than_")
-        .replace(">", "_more_than_")
-        .replace("%", "")
-        .replace(":", "")
-        .replace("€", "")
-        .replace("ë", "e")
-        .replace("ö", "o")
-        .replace("/", "_")
-        .replace("\n", "_")
-        .replace("__", "_")
-        .rstrip("_")
-        .lower()
-        .replace("#replace#", "&&")
-    )
-    return string.replace("__", "_")
-
-
-def represents_int(s):
-    try:
-        int(s)
-    except ValueError:
-        return False
-    else:
-        return True
-
-
 def extract_excel_data(excel_file, cc_data, new_count):
     key_prefix = ""
     error = False
@@ -115,9 +75,9 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
-    N_ROWS = len(excel_content)
+    n_rows = len(excel_content)
 
-    for row_n in range(12, (N_ROWS)):
+    for row_n in range(12, (n_rows)):
         if excel_content.iloc[row_n, 0] == "":
             print(f"> Row {row_n + 2}: Empty row, skipping...")
             continue
@@ -132,6 +92,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
         if industry not in cc_data["sectors"]:
             found = False
+
             for key in cc_data["sbi_codes"]:
                 if str(industry) in cc_data["sbi_codes"][key]:
                     industry = key
@@ -194,8 +155,9 @@ def extract_excel_data(excel_file, cc_data, new_count):
         changes.append(to_change)
 
         sheet_data[year_key][f"{key_prefix}&&ldsh_enabled"] = 1
+        n_cols = len(excel_content.columns)
 
-        for col_n in range(8, 61):
+        for col_n in range(8, n_cols):
             col_name = excel_content.iloc[7, col_n]
             if col_name == "":
                 continue
@@ -228,16 +190,20 @@ def create_json_files():
 # Main
 def main():
     new_count = 50
+
     for file in os.listdir(excel_folder):
         if file.endswith(".xlsx") and file[0] != "~":
             excel_file = f"{excel_folder}/{file}"
             [error, new_count, new_site] = extract_excel_data(
                 excel_file, cc_data, new_count
             )
+
             if error:
                 exit()
+
             if new_site:
                 new_sites.update(new_site)
+
     create_json_files()
     create_file("logs/industries.log", cc_data["sectors"])
     create_file("logs/clusters.log", cc_data["clusters"])

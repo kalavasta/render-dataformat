@@ -50,12 +50,15 @@ def main():
                         print(f"> Creating session for `{session_name}`")
                     else:
                         print(f"> Updating session for `{session_name}`")
+
                     new_inputs = json.load(f)
 
                     req = copy.deepcopy(req_json)
                     req["inputs"] = new_inputs
+
                     if session_id != "":
                         req["SessionID"] = session_id
+
                     res = requests.post(url=f"{URL}/api/", json=req)
                     res_json = res.json()
 

@@ -30,6 +30,7 @@ def strip_string(string):
         .lower()
         .replace("#replace#", "&&")
     )
+
     return string.replace("__", "_")
 
 
@@ -42,3 +43,12 @@ def create_file(filename, data):
             indent=4,
         )
     print(f"Created {filename}")
+
+
+def represents_int(value):
+    try:
+        int(value)
+    except ValueError:
+        return False
+    else:
+        return True

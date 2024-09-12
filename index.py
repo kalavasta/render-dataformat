@@ -7,7 +7,7 @@ import sys
 import re
 import openpyxl
 import glob
-from functions import create_file
+from functions import create_file, represents_int, strip_string
 
 # Constants
 SHEETS = {
@@ -68,46 +68,6 @@ cc_data = response.json()
 
 
 # Functions
-def strip_string(string):
-    string = (
-        string.strip()
-        .replace("&&", "#replace#")
-        .replace("-", "_")
-        .replace(" ", "_")
-        .replace("?", "")
-        .replace("!", "")
-        .replace(".", "")
-        .replace("&", "")
-        .replace(",", "")
-        .replace("(", "")
-        .replace(")", "")
-        .replace("'", "")
-        .replace("<", "_less_than_")
-        .replace(">", "_more_than_")
-        .replace("%", "")
-        .replace(":", "")
-        .replace("€", "")
-        .replace("ë", "e")
-        .replace("ö", "o")
-        .replace("/", "_")
-        .replace("\n", "_")
-        .replace("__", "_")
-        .rstrip("_")
-        .lower()
-        .replace("#replace#", "&&")
-    )
-    return string.replace("__", "_")
-
-
-def represents_int(s):
-    try:
-        int(s)
-    except ValueError:
-        return False
-    else:
-        return True
-
-
 def extract_excel_data(excel_file, cc_data, new_count):
     key_prefix = ""
     error = False
@@ -134,6 +94,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                 if industry not in cc_data["sectors"]:
                     found = False
+
                     for key in cc_data["sbi_codes"]:
                         if str(industry) in cc_data["sbi_codes"][key]:
                             industry = key
@@ -143,6 +104,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         print(
                             f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs.\nPlease pick an industry from logs/industries.log or an SBI code from logs/sbi_codes.log\n"
                         )
+
                         return True, new_count, False
 
                 if cluster not in cc_data["clusters"]:
@@ -198,6 +160,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
             elif sheet_key == "emissions_and_energy":
                 year = ""
                 year_suffix = ""
+
                 for row_n in range(3, 46):
                     if excel_content.iloc[row_n, 1] != "":
                         year = (
@@ -205,22 +168,29 @@ def extract_excel_data(excel_file, cc_data, new_count):
                             if represents_int(excel_content.iloc[row_n, 1])
                             else ""
                         )
+
                     if year == "":
                         continue
+
                     if excel_content.iloc[row_n, 2]:
                         year_suffix = str(excel_content.iloc[row_n, 2])
+
                     row_preheader = "base" if year == "2021" else "future"
                     row_header = (
                         "production"
                         if "Productie" in excel_content.iloc[row_n, 4]
                         else "demand"
                     )
+
                     if row_header == "" or excel_content.iloc[row_n, 4] == "":
                         continue
+
                     col_preheader = ""
+
                     for col_n in range(5, 34):
                         if excel_content.iloc[1, col_n] != "":
                             col_preheader = excel_content.iloc[1, col_n]
+
                         col_header = excel_content.iloc[2, col_n]
                         key = strip_string(
                             f"{key_prefix}&&{sheet_key}_{col_preheader}_{col_header}_{row_header}_{row_preheader}"
@@ -239,22 +209,28 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 year_suffix = ""
                 current_flexibility = 1
                 n_rows = excel_content[excel_content.columns[0]].count()
+
                 for row_n in range(2, n_rows):
                     if (
                         excel_content.iloc[row_n, 1] != ""
                         or excel_content.iloc[row_n, 2] != ""
                     ):
                         current_flexibility = 1
+
                     if excel_content.iloc[row_n, 1] != "":
                         year = str(int(excel_content.iloc[row_n, 1]))
+
                     if excel_content.iloc[row_n, 2]:
                         year_suffix = str(excel_content.iloc[row_n, 2])
+
                     row_preheader = "base" if year == "2021" else "future"
                     row_header = f"flexibility_{str(current_flexibility)}"
                     col_preheader = ""
+
                     for col_n in range(3, 14):
                         if excel_content.iloc[0, col_n]:
                             col_preheader = excel_content.iloc[0, col_n]
+
                         col_header = excel_content.iloc[1, col_n]
                         key = strip_string(
                             f"{key_prefix}&&{sheet_key}_{col_preheader}_{col_header}_{row_header}_{row_preheader}"
@@ -267,6 +243,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                                 {key: excel_content.iloc[row_n, col_n]}
                             )
                             sheet_updated[data_key] = True
+
                     current_flexibility += 1
     else:
         for sheet_key, sheet_value in SHEETS_NEW_SETUP.items():
@@ -274,6 +251,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                 excel_file, engine="openpyxl", sheet_name=sheet_value
             )
             excel_content = excel_content.fillna("")
+
             if sheet_key == "company_details":
                 industry = excel_content.iloc[14, 2]
                 cluster = excel_content.iloc[15, 2]
@@ -282,6 +260,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                 if industry not in cc_data["sectors"]:
                     found = False
+
                     for key in cc_data["sbi_codes"]:
                         if str(industry) in cc_data["sbi_codes"][key]:
                             industry = key
@@ -291,6 +270,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         print(
                             f"Industry for excel {excel_file} ({industry}) does not exist, it will be emitted from the inputs.\nPlease pick an industry from logs/industries.log or an SBI code from logs/sbi_codes.log\n"
                         )
+
                         return True, new_count, False
 
                 if cluster not in cc_data["clusters"]:
@@ -323,6 +303,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                             "cluster": cluster,
                         }
                     }
+
                 else:
                     if name not in cc_data["sites"]:
                         print(
@@ -342,18 +323,20 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
                 if strip_string(name) in cc_data["cc_sites"]:
                     changes.append(key_prefix.replace("ldsh&&", ""))
+
             elif sheet_key == "flex":
                 year = ""
                 year_suffix = ""
                 current_flexibility = 1
-
                 n_rows = excel_content[excel_content.columns[0]].count()
+
                 for row_n in range(2, len(excel_content)):
                     if (
                         excel_content.iloc[row_n, 1] != ""
                         or excel_content.iloc[row_n, 2] != ""
                     ):
                         current_flexibility = 1
+
                     if excel_content.iloc[row_n, 1] != "":
                         year = str(int(excel_content.iloc[row_n, 1]))
 
@@ -363,9 +346,11 @@ def extract_excel_data(excel_file, cc_data, new_count):
                     row_preheader = "base" if year == "2021" else "future"
                     row_header = f"flexibility_{str(current_flexibility)}"
                     col_preheader = ""
+
                     for col_n in range(3, 14):
                         if excel_content.iloc[0, col_n]:
                             col_preheader = excel_content.iloc[0, col_n]
+
                         col_header = excel_content.iloc[1, col_n]
                         key = strip_string(
                             f"{key_prefix}&&{sheet_key}_{col_preheader}_{col_header}_{row_header}_{row_preheader}"
@@ -378,12 +363,14 @@ def extract_excel_data(excel_file, cc_data, new_count):
                                 {key: excel_content.iloc[row_n, col_n]}
                             )
                             sheet_updated[data_key] = True
+
                     current_flexibility += 1
             else:
                 year = ""
                 year_suffix = sheet_key
                 check_ending = False
                 row_n = 2
+
                 while (
                     not check_ending
                     or check_ending != "Verhaallijnen worden begeleid uitgevraagd."
@@ -394,6 +381,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                             if represents_int(excel_content.iloc[row_n, 1])
                             else ""
                         )
+
                     if year == "":
                         check_ending = excel_content.iloc[row_n, 1]
                         row_n += 1
@@ -405,6 +393,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
                         if "Productie" in excel_content.iloc[row_n, 4]
                         else "demand"
                     )
+
                     if row_header == "" or excel_content.iloc[row_n, 4] == "":
                         check_ending = excel_content.iloc[row_n, 1]
                         row_n += 1
@@ -435,7 +424,9 @@ def extract_excel_data(excel_file, cc_data, new_count):
                                 {key: excel_content.iloc[row_n, col_n]}
                             )
                             sheet_updated[data_key] = True
+
                         col_n += 1
+
                     row_n += 1
 
                     check_ending = excel_content.iloc[row_n, 1]
@@ -448,8 +439,10 @@ def create_json_files():
         if sheet_updated[year_key]:
             filename = f"{json_folder}/{str(year_key)}.json"
             year_data = sheet_data[year_key]
+
             if year_key == "2021":
                 year_data = {}
+
                 for key, value in sheet_data["data"].items():
                     new_key = re.sub("_base$", "_future", key)
                     year_data[new_key] = value
@@ -467,6 +460,7 @@ def create_json_files():
 
 def remove_contents(folder_path, extension):
     files = glob.glob(os.path.join(folder_path, f"*{extension}"))
+
     for file_path in files:
         try:
             os.remove(file_path)
@@ -478,12 +472,14 @@ def remove_contents(folder_path, extension):
 def main():
     remove_contents("json", ".json")
     new_count = 1
+
     for file in os.listdir(excel_folder):
         if file.endswith(".xlsx") and file[0] != "~":
             excel_file = f"{excel_folder}/{file}"
             [error, new_count, new_site] = extract_excel_data(
                 excel_file, cc_data, new_count
             )
+
             if new_site:
                 new_sites.update(new_site)
 
