@@ -246,8 +246,8 @@ def insert_site_data():
                 sheet["C15"].value = site_name
                 sheet["C16"].value = sheet_data.get("sector", "")
                 sheet["C17"].value = sheet_data.get("cluster", "")
-                sheet["C18"].value = f"'{sheet_data.get("ean_electricity", "")}"
-                sheet["C19"].value = f"'{sheet_data.get("ean_gas", "")}"
+                sheet["C18"].value = f"'{sheet_data.get('ean_electricity', '')}"
+                sheet["C19"].value = f"'{sheet_data.get('ean_gas', '')}"
                 sheet["C20"].value = sheet_data.get("grid_operator_electricity", "")
                 sheet["C21"].value = sheet_data.get("grid_operator_gas", "")
 
