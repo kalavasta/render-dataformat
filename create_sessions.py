@@ -29,6 +29,7 @@ def main():
 
         for _, _, files in os.walk(subdir):
             json_files = [file for file in files if file.endswith(".json")]
+            json_files = sorted(json_files)
 
             if len(json_files) == 0:
                 exit(f"Error: No JSON files found in {subdir}, skipping...")
