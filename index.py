@@ -7,6 +7,7 @@ import sys
 import re
 import openpyxl
 import glob
+from functions import create_file
 
 # Constants
 SHEETS = {
@@ -105,17 +106,6 @@ def represents_int(s):
         return False
     else:
         return True
-
-
-def create_file(filename, data):
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "w") as f:
-        json.dump(
-            data,
-            f,
-            indent=4,
-        )
-    print(f"Created {filename}")
 
 
 def extract_excel_data(excel_file, cc_data, new_count):

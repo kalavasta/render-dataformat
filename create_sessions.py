@@ -32,7 +32,7 @@ def main():
             json_files = sorted(json_files)
 
             if len(json_files) == 0:
-                exit(f"Error: No JSON files found in {subdir}, skipping...")
+                exit(f"Error: No JSON files found in {subdir}")
 
             print(
                 f"> Found {len(json_files)} JSON files in `{subdir}, creating session`"

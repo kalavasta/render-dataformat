@@ -8,6 +8,7 @@ import requests
 import sys
 import re
 import glob
+from functions import create_file
 
 # Constants
 SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
@@ -103,22 +104,14 @@ def represents_int(s):
         return True
 
 
-def create_file(filename, data):
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, "w") as f:
-        json.dump(
-            data,
-            f,
-            indent=4,
-        )
-    print(f"Created {filename}")
-
-
 def extract_excel_data(excel_file, cc_data, new_count):
     key_prefix = ""
     error = False
     new_site = {}
     included_new_sites = {}
+
+    if SHEET not in pd.ExcelFile(excel_file).sheet_names:
+        exit(f"Error: Sheet `{SHEET}` not found in `{excel_file}`")
 
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
@@ -126,7 +119,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
 
     for row_n in range(12, (N_ROWS)):
         if excel_content.iloc[row_n, 0] == "":
-            print(f"Row {row_n + 2}: Empty row, skipping...")
+            print(f"> Row {row_n + 2}: Empty row, skipping...")
             continue
 
         industry = excel_content.iloc[row_n, 2]
