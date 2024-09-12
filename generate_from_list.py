@@ -15,27 +15,27 @@ SHEET = "Site_resultaten_voor_upload"  # Sheet name in the excel file
 YEARS = [
     "2021",
     "2030",
-    "2030_decentrale_initiatieven",
+    "2030_koersvaste_middenweg",
     "2030_eigen_toekomstbeeld_bedrijf",
-    "2030_europese_integratie",
-    "2030_internationale_handel",
-    "2030_nationaal_leiderschap",
+    "2030_gezamenlijke_balans",
+    "2030_horizon_aanvoer",
+    "2030_eigen_vermogen",
     "2035",
-    "2035_decentrale_initiatieven",
+    "2035_koersvaste_middenweg",
     "2035_eigen_toekomstbeeld_bedrijf",
-    "2035_europese_integratie",
-    "2035_internationale_handel",
-    "2035_nationaal_leiderschap",
-    "2040_decentrale_initiatieven",
+    "2035_gezamenlijke_balans",
+    "2035_horizon_aanvoer",
+    "2035_eigen_vermogen",
+    "2040_koersvaste_middenweg",
     "2040_eigen_toekomstbeeld_bedrijf",
-    "2040_europese_integratie",
-    "2040_internationale_handel",
-    "2040_nationaal_leiderschap",
-    "2050_decentrale_initiatieven",
+    "2040_gezamenlijke_balans",
+    "2040_horizon_aanvoer",
+    "2040_eigen_vermogen",
+    "2050_koersvaste_middenweg",
     "2050_eigen_toekomstbeeld_bedrijf",
-    "2050_europese_integratie",
-    "2050_internationale_handel",
-    "2050_nationaal_leiderschap",
+    "2050_gezamenlijke_balans",
+    "2050_horizon_aanvoer",
+    "2050_eigen_vermogen",
 ]
 
 API_URL = "https://carbontransitionmodel.com"
@@ -123,6 +123,7 @@ def extract_excel_data(excel_file, cc_data, new_count):
     excel_content = pd.read_excel(excel_file, engine="openpyxl", sheet_name=SHEET)
     excel_content = excel_content.fillna("")
     N_ROWS = len(excel_content)
+
     for row_n in range(12, (N_ROWS)):
         if excel_content.iloc[row_n, 0] == "":
             print(f"Row {row_n + 2}: Empty row, skipping...")

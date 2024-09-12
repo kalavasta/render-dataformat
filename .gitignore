@@ -1,12 +1,11 @@
 excel/*
-!excel/.gitkeep
 json/*
-!json/.gitkeep
 logs/*
-!logs/.gitkeep
 venv
 2035.json
 sessions.json
 test.json
 scenarios/*
 dataformats
+excel_cc
+json_cc

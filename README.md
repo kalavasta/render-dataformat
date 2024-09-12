@@ -47,7 +47,7 @@ This works in the following manner. The first step is to create a session from t
 
 ### generate_from_list.py
 
-This script is for use with Cluster Analysis.xlsx: Site_resultaten_voor_upload. The script will create a json file in the json folder for each year in the excel sheet. The json file will contain all the data from the excel file for that year, as well as all the data from the excel file for the base year (2021). The exported json files can be used in transition model website by uploading one of them via "Import Dataformats".
+This script is for use with Cluster Analysis.xlsx: Site_resultaten_voor_upload. The script will create a json file in the json folder for each year in the excel sheet. The name of the sheet has to be "Site_resultaten_voor_upload" The json file will contain all the data from the excel file for that year, as well as all the data from the excel file for the base year (2021). The exported json files can be used in transition model website by uploading one of them via "Import Dataformats".
 
 
 #### Usage
