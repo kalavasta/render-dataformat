@@ -59,12 +59,20 @@ def main():
                     res = requests.post(url=f"{URL}/api/", json=req)
                     res_json = res.json()
 
-                    if session_id == "":
-                        print(
-                            f"> Successfully created a session with id: {res_json['SessionID']}"
-                        )
+                    if "error" in res_json:
+                        exit(f"Error: {res_json['error']}")
 
-                    session_id = res_json["SessionID"]
+                    if res.status_code != 200:
+                        exit(f"Error: {res_json}")
+
+                    if session_id == "":
+                        if "SessionID" not in res_json:
+                            exit(
+                                f"Error: Failed to create a session for `{session_name}`"
+                            )
+
+                        session_id = res_json["SessionID"]
+                        print(f"> Successfully created a session with id: {session_id}")
 
             sessions[session_name] = {
                 "name": session_name,
