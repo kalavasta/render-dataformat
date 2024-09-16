@@ -65,8 +65,6 @@ def main():
 
                     try:
                         res_json = res.json()
-                    except Exception as e:
-                        exit(f"Error: {e}")
                     except:
                         exit(f"Error: {res}")
 
