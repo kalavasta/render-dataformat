@@ -4,6 +4,8 @@ import json
 import requests
 import copy
 import sys
+import time
+import math
 
 URL = "https://beta.carbontransitionmodel.com"
 DEFAULT_SCENARIO = "Base year"
@@ -20,6 +22,7 @@ req_json = {
 
 
 def main():
+    time_start = time.time()
 
     for subdir, _, _ in os.walk(ROOT_DIR):
         if subdir == ROOT_DIR:
@@ -91,6 +94,12 @@ def main():
             print(f"> Session successfully created for `{session_name}`")
 
     create_file("./sessions.json", sessions)
+
+    time_end = time.time()
+    duration = time_end - time_start
+    print(
+        f"Done! Process took {math.floor(duration / 60)} minute(s) and {round(duration % 60)} seconds"
+    )
 
 
 if __name__ == "__main__":
