@@ -61,7 +61,14 @@ def main():
                         req["SessionID"] = session_id
 
                     res = requests.post(url=f"{URL}/api/", json=req)
-                    res_json = res.json()
+                    res_json = None
+
+                    try:
+                        res_json = res.json()
+                    except Exception as e:
+                        exit(f"Error: {e}")
+                    except:
+                        exit(f"Error: {res}")
 
                     if "error" in res_json:
                         exit(f"Error: {res_json['error']}")
